@@ -1,0 +1,9 @@
+[wokwi]
+version = 1
+firmware = ".pio/build/esp32-s3-devkitc-1/firmware.bin"
+elf = ".pio/build/esp32-s3-devkitc-1/firmware.elf"
+
+# Forward browser port 8180 to the HTTP server on the simulated ESP32.
+[[net.forward]]
+from = "localhost:8180"
+to = "target:80"
