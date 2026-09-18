@@ -11,8 +11,6 @@
 
 static Adafruit_SSD1306 display(128, 64, &Wire, -1);
 
-// OLED CỦA PROJECT GIAO TIẾP BẰNG I2C
-// Khởi tạo chip SSD1306 - chip điều khiển màn hình OLED ma trận điểm
 void initDisplay() {
     Wire.begin(OLED_SDA, OLED_SCL);
 

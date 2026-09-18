@@ -1,4 +1,3 @@
-// Quản lý các FreeRTOS object gồm Queue, Semaphore, Mutex và các trạng thái dùng chung giữa nhiều task
 #pragma once
 
 #include <Arduino.h>

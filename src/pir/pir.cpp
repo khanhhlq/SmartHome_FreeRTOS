@@ -6,7 +6,7 @@
 #include "pir.h"
 
 // ISR phải ngắn:
-// chỉ ghi nhận thời điểm nhận và phát semaphore.
+// chỉ ghi nhận thời điểm và phát semaphore.
 void IRAM_ATTR pirISR() {
     BaseType_t taskWoken = pdFALSE;
 
@@ -22,7 +22,6 @@ void IRAM_ATTR pirISR() {
 }
 
 void initPIRInterrupt() {
-    // Tạo Queue / Semaphore / Mutex
     currentOccupancy = digitalRead(PIR_PIN);
 
     attachInterrupt(

@@ -1,6 +1,5 @@
 #include "app_state.h"
 
-// Tạo biến tham chiếu với Queue do FreeRTOS tạo ra
 QueueHandle_t sensorQueue = nullptr;
 QueueHandle_t decisionQueue = nullptr;
 SemaphoreHandle_t pirSemaphore = nullptr;
@@ -23,7 +22,6 @@ volatile uint32_t controlCycles = 0;
 volatile uint32_t controlDeadlineMiss = 0;
 
 bool initRTOSObjects() {
-    // 1 nghĩa là chứa 1 item có kích thước bằng một SensorData. Lưu 1 item bởi vì chỉ cần lưu giá trị mới nhất hiện tại là gì
     sensorQueue   = xQueueCreate(1, sizeof(SensorData));
     decisionQueue = xQueueCreate(1, sizeof(DecisionData));
     pirSemaphore  = xSemaphoreCreateBinary();

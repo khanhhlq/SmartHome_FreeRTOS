@@ -1,4 +1,3 @@
-// Moudle Control thực hiện chúng như thế nào?
 #include <Arduino.h>
 
 #include "../core/config.h"
@@ -15,7 +14,7 @@ void initControl() {
 
     digitalWrite(LIGHT_PIN, LOW);
     ledcWrite(PWM_CHANNEL, 0);
-    noTone(BUZZER_PIN); // Buzzer phát tần số 1000hz  nếu viết tone(buzzer_pin,1000) còn viết như bên cạnh là dừng phát âm là 0hz
+    noTone(BUZZER_PIN);
 }
 
 void ControlTask(void *parameter) {
