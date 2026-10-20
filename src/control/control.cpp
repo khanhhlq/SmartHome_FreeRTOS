@@ -9,79 +9,77 @@ void initControl() {
     pinMode(LIGHT_PIN, OUTPUT);
     pinMode(BUZZER_PIN, OUTPUT);
 
+    // PlatformIO espressif32@6.12.0 -> Arduino-ESP32 2.0.17 APIs.
     ledcSetup(PWM_CHANNEL, PWM_FREQ, PWM_RESOLUTION);
     ledcAttachPin(FAN_PIN, PWM_CHANNEL);
 
-    digitalWrite(LIGHT_PIN, LOW);
+    digitalWrite(LIGHT_PIN, RELAY_ACTIVE_HIGH ? LOW : HIGH);
     ledcWrite(PWM_CHANNEL, 0);
     noTone(BUZZER_PIN);
 }
 
 void ControlTask(void *parameter) {
-    SensorData sensor;
     DecisionData decision;
+    TickType_t lastAppliedTick = portMAX_DELAY;
+    bool buzzerWasOn = false;
 
     while (true) {
-        TickType_t startTick = xTaskGetTickCount();
+        const uint32_t startUs = micros();
 
-        if (xQueuePeek(sensorQueue, &sensor, 0) == pdTRUE &&
-            xQueuePeek(decisionQueue, &decision, 0) == pdTRUE) {
-
+        if (xQueuePeek(decisionQueue, &decision, 0) == pdTRUE) {
+            // Use the sensor snapshot evaluated by DecisionTask, not another
+            // sample from sensorQueue (which might belong to a newer update).
+            const SensorData &sensor = decision.sensor;
             int nextFan = 0;
             bool nextLight = false;
             bool nextAlarm = false;
 
             switch (decision.mode) {
-
                 case COMFORT:
                 case ENERGY_SAVING:
                     break;
-
                 case LIGHTING:
                     nextLight = true;
                     break;
-
                 case COOLING:
-                    nextFan = (sensor.temperature >= TEMP_FAN_MAX) ? 255 : 180;
-
-                    // Nóng + tối + có người -> vừa làm mát vừa bật đèn
-                    if (sensor.occupancy && sensor.light < LIGHT_DARK)
+                    nextFan = sensor.temperature >= TEMP_FAN_MAX ? 255 : 180;
+                    if (sensor.occupancy && sensor.light < decision.settings.darkLightPct) {
                         nextLight = true;
+                    }
                     break;
-
                 case WARNING:
                     nextFan = 255;
                     nextAlarm = true;
                     break;
             }
 
-            // Ghi ra phần cứng
-            digitalWrite(LIGHT_PIN, nextLight ? HIGH : LOW);
+            digitalWrite(LIGHT_PIN, (nextLight == RELAY_ACTIVE_HIGH) ? HIGH : LOW);
             ledcWrite(PWM_CHANNEL, nextFan);
+            // Avoid re-configuring the tone peripheral on every 200-ms cycle.
+            if (nextAlarm != buzzerWasOn) {
+                if (nextAlarm) tone(BUZZER_PIN, 1000);
+                else noTone(BUZZER_PIN);
+                buzzerWasOn = nextAlarm;
+            }
 
-            if (nextAlarm)
-                tone(BUZZER_PIN, 1000);
-            else
-                noTone(BUZZER_PIN);
-
-            // Lưu trạng thái để OLED/Web hiển thị
             fanPwm = nextFan;
             lightOn = nextLight;
             alarmOn = nextAlarm;
 
-            // Sensor sample -> actuator update
-            TickType_t now = xTaskGetTickCount();
-            responseTimeMs = (now - sensor.sampleTick) * portTICK_PERIOD_MS;
+            // Chi dem mau cam bien moi, khong dem lai cung mot mau vao deadline.
+            if (sensor.sampleTick != lastAppliedTick) {
+                lastAppliedTick = sensor.sampleTick;
+                const TickType_t now = xTaskGetTickCount();
+                responseTimeMs = (now - sensor.sampleTick) * portTICK_PERIOD_MS;
+                controlCycles++;
+                if (responseTimeMs > CONTROL_DEADLINE_MS) {
+                    controlDeadlineMiss++;
+                }
+            }
         }
 
-        // Đo thời gian thực thi ControlTask
-        TickType_t endTick = xTaskGetTickCount();
-        controlExecMs = (endTick - startTick) * portTICK_PERIOD_MS;
-
-        controlCycles++;
-        if (controlExecMs > CONTROL_DEADLINE_MS)
-            controlDeadlineMiss++;
-
+        controlExecUs = micros() - startUs;
+        controlExecMs = controlExecUs / 1000; // giữ tương thích với mã cũ
         vTaskDelay(pdMS_TO_TICKS(CONTROL_PERIOD_MS));
     }
 }

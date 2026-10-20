@@ -9,99 +9,40 @@
 #include "display/display.h"
 #include "web/web_server.h"
 
-// =====================================================
-// main.cpp chỉ làm 3 việc:
-// 1. Khởi tạo phần cứng
-// 2. Tạo các object FreeRTOS
-// 3. Tạo các task
-// =====================================================
-
+// setup(): khoi tao phan cung, object FreeRTOS, roi tao 6 task.
+// Cac task va uu tien duoc giu nguyen so voi source goc cua nhom.
 void setup() {
     Serial.begin(115200);
-
     Serial.println();
-    Serial.println("==============================");
-    Serial.println(" SMART HOME - FREERTOS + FSM ");
-    Serial.println("==============================");
+    Serial.println("=====================================");
+    Serial.println(" ESP32-S3 SMART HOME - REAL + CONFIG ");
+    Serial.println("=====================================");
 
-    // 1. Khởi tạo phần cứng
     initSensors();
     initControl();
     initDisplay();
-
-    // 2. Tạo Queue / Semaphore / Mutex
     currentOccupancy = digitalRead(PIR_PIN);
 
     if (!initRTOSObjects()) {
-        Serial.println("[ERROR] Cannot create FreeRTOS objects");
-        while (true) {
-            delay(1000);
-        }
+        Serial.println("[ERROR] Cannot create RTOS Queue/Semaphore/Mutex");
+        while (true) delay(1000);
     }
+    initPIRInterrupt();  // pirSemaphore da ton tai truoc khi ISR bat dau
 
-    // Interrupt cần pirSemaphore đã tồn tại
-    initPIRInterrupt();
-
-    // 3. Tạo các task
-    xTaskCreate(
-        PIRTask,
-        "PIRTask",
-        2048,
-        nullptr,
-        4,
-        nullptr
-    );
-
-    xTaskCreate(
-        ControlTask,
-        "ControlTask",
-        4096,
-        nullptr,
-        3,
-        nullptr
-    );
-
-    xTaskCreate(
-        SensorTask,
-        "SensorTask",
-        4096,
-        nullptr,
-        2,
-        nullptr
-    );
-
-    xTaskCreate(
-        DecisionTask,
-        "DecisionTask",
-        3072,
-        nullptr,
-        2,
-        nullptr
-    );
-
-    xTaskCreate(
-        DisplayTask,
-        "DisplayTask",
-        3072,
-        nullptr,
-        1,
-        nullptr
-    );
-
-    xTaskCreate(
-        WebTask,
-        "WebTask",
-        6144,
-        nullptr,
-        1,
-        nullptr
-    );
-
-    Serial.println("[SYSTEM] Tasks created");
+    bool created = true;
+    created &= (xTaskCreate(PIRTask, "PIRTask", 2048, nullptr, 4, nullptr) == pdPASS);
+    created &= (xTaskCreate(ControlTask, "ControlTask", 4096, nullptr, 3, nullptr) == pdPASS);
+    created &= (xTaskCreate(SensorTask, "SensorTask", 4096, nullptr, 2, nullptr) == pdPASS);
+    created &= (xTaskCreate(DecisionTask, "DecisionTask", 3072, nullptr, 2, nullptr) == pdPASS);
+    created &= (xTaskCreate(DisplayTask, "DisplayTask", 3072, nullptr, 1, nullptr) == pdPASS);
+    created &= (xTaskCreate(WebTask, "WebTask", 6144, nullptr, 1, nullptr) == pdPASS);
+    if (!created) {
+        Serial.println("[ERROR] One or more FreeRTOS tasks could not be created");
+        while (true) delay(1000);
+    }
+    Serial.println("[SYSTEM] 6 FreeRTOS tasks created; sensor source: REAL only");
 }
 
-// Arduino loop không còn xử lý logic chính.
-// Hệ thống được vận hành bởi các FreeRTOS task.
 void loop() {
     vTaskDelay(pdMS_TO_TICKS(1000));
 }

@@ -45,21 +45,17 @@ void PIRTask(void *parameter) {
         TickType_t now = xTaskGetTickCount();
         pirLatencyMs = (now - pirIsrTick) * portTICK_PERIOD_MS;
 
-        Serial.print("[PIR] Occupancy = ");
-        Serial.print(currentOccupancy ? "YES" : "NO");
-        Serial.print(" | ISR->Task = ");
-        Serial.print(pirLatencyMs);
-        Serial.println(" ms");
+        // Một dòng cho một sự kiện: tránh các Serial.print rời rạc.
+        Serial.printf("[PIR]  GPIO16=%d  ISR->PIRTask=%lu ms\r\n",
+                      currentOccupancy ? 1 : 0, (unsigned long)pirLatencyMs);
 
-        // Nếu đang dùng REAL sensor, cập nhật occupancy ngay
-        if (inputSource == REAL_SENSOR) {
-            SensorData sensor;
-
-            if (xQueuePeek(sensorQueue, &sensor, 0) == pdTRUE) {
-                sensor.occupancy = currentOccupancy;
-                sensor.sampleTick = now;
-                xQueueOverwrite(sensorQueue, &sensor);
-            }
+        // PIR event: cap nhat ngay trang thai trong sensorQueue (1 phan tu).
+        // ISR chi bao semaphore; thao tac Queue thuc hien tai PIRTask.
+        SensorData sensor = {};
+        if (xQueuePeek(sensorQueue, &sensor, 0) == pdTRUE) {
+            sensor.occupancy = currentOccupancy;
+            sensor.sampleTick = now;
+            xQueueOverwrite(sensorQueue, &sensor);
         }
     }
 }

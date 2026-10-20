@@ -19,6 +19,7 @@ void initDisplay() {
         return;
     }
 
+    Serial.println("[I2C] SSD1306 ready  addr=0x3C  SDA=GPIO8  SCL=GPIO9");
     display.clearDisplay();
     display.setTextColor(SSD1306_WHITE);
     display.setTextSize(1);
@@ -44,7 +45,7 @@ void DisplayTask(void *parameter) {
             display.setCursor(0, 0);
 
             display.print("SRC: ");
-            display.println(sourceName());
+            display.println("REAL");
 
             display.print("T:");
             display.print(sensor.temperature, 1);

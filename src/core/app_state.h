@@ -1,36 +1,33 @@
 #pragma once
-
 #include <Arduino.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "freertos/semphr.h"
 #include "types.h"
 
-// FreeRTOS objects
 extern QueueHandle_t sensorQueue;
 extern QueueHandle_t decisionQueue;
 extern SemaphoreHandle_t pirSemaphore;
-extern SemaphoreHandle_t webMutex;
+extern SemaphoreHandle_t configMutex;
 
-// Shared system state
 extern volatile bool currentOccupancy;
-extern volatile InputSource inputSource;
 extern volatile TickType_t pirIsrTick;
 
-// WEB sensor values protected by webMutex
-extern SensorData webData;
+// Config chia se giua WebTask, DecisionTask: doc/ghi qua configMutex.
+extern ControllerSettings controllerSettings;
+bool readControllerSettings(ControllerSettings &out);
+bool updateControllerSettings(float coolingTempC, float darkLightPct,
+                              ControllerSettings &out);
 
-// Current actuator states
 extern volatile int fanPwm;
 extern volatile bool lightOn;
 extern volatile bool alarmOn;
 
-// Real-time metrics
 extern volatile uint32_t pirLatencyMs;
 extern volatile uint32_t responseTimeMs;
 extern volatile uint32_t controlExecMs;
+extern volatile uint32_t controlExecUs;
 extern volatile uint32_t controlCycles;
 extern volatile uint32_t controlDeadlineMiss;
 
-// Create Queue / Semaphore / Mutex and seed initial values
 bool initRTOSObjects();

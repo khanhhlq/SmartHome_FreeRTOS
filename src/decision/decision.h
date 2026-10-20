@@ -1,9 +1,6 @@
 #pragma once
-
 #include "../core/types.h"
 
-SystemMode evaluateMode(const SensorData &data);
+SystemMode evaluateMode(const SensorData &data, const ControllerSettings &settings);
 const char* modeName(SystemMode mode);
-const char* sourceName();
-
 void DecisionTask(void *parameter);

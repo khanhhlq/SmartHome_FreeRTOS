@@ -20,15 +20,27 @@
 // WARNING > ENERGY_SAVING > COOLING > LIGHTING > COMFORT
 // =========================
 constexpr float TEMP_WARNING = 45.0f;
-constexpr float TEMP_COOLING = 30.0f;
+constexpr float TEMP_COOLING_DEFAULT = 30.0f;
+constexpr float TEMP_COOLING_MIN = 25.0f;
+constexpr float TEMP_COOLING_MAX = 40.0f;
 constexpr float TEMP_FAN_MAX = 35.0f;
-constexpr float LIGHT_DARK   = 30.0f;
+constexpr float LIGHT_DARK_DEFAULT = 30.0f;
+constexpr float LIGHT_DARK_MIN = 10.0f;
+constexpr float LIGHT_DARK_MAX = 60.0f;
+
+// Wokwi LDR AO falls as illumination rises. Controller semantics:
+// 0% = dark, 100% = bright; light < 30% therefore means dark.
+constexpr bool LDR_ADC_INVERTED_TO_BRIGHTNESS = true;
+
+// The relay should turn on with HIGH as described in report(6).
+// Confirm polarity in Wokwi, because simulation/module variants can invert it.
+constexpr bool RELAY_ACTIVE_HIGH = true;
 
 // =========================
 // Timing
 // =========================
 constexpr uint32_t SENSOR_REAL_PERIOD_MS = 2000;
-constexpr uint32_t SENSOR_WEB_PERIOD_MS  = 500;
+constexpr uint32_t REAL_LOG_PERIOD_MS = 5000;
 constexpr uint32_t DECISION_PERIOD_MS    = 100;
 constexpr uint32_t CONTROL_PERIOD_MS     = 200;
 constexpr uint32_t DISPLAY_PERIOD_MS     = 500;
