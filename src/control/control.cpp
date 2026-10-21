@@ -24,6 +24,8 @@ void ControlTask(void *parameter) {
     bool buzzerWasOn = false;
 
     while (true) {
+        // Process new decision immediately, instead of polling every 200 ms.
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         const uint32_t startUs = micros();
 
         if (xQueuePeek(decisionQueue, &decision, 0) == pdTRUE) {
@@ -71,6 +73,7 @@ void ControlTask(void *parameter) {
                 lastAppliedTick = sensor.sampleTick;
                 const TickType_t now = xTaskGetTickCount();
                 responseTimeMs = (now - sensor.sampleTick) * portTICK_PERIOD_MS;
+                if (responseTimeMs > maxResponseTimeMs) maxResponseTimeMs = responseTimeMs;
                 controlCycles++;
                 if (responseTimeMs > CONTROL_DEADLINE_MS) {
                     controlDeadlineMiss++;
@@ -80,6 +83,5 @@ void ControlTask(void *parameter) {
 
         controlExecUs = micros() - startUs;
         controlExecMs = controlExecUs / 1000; // giữ tương thích với mã cũ
-        vTaskDelay(pdMS_TO_TICKS(CONTROL_PERIOD_MS));
     }
 }

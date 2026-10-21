@@ -48,6 +48,8 @@ void SensorTask(void *parameter) {
             continue;
         }
         xQueueOverwrite(sensorQueue, &data);
+        // Wake DecisionTask for each new REAL sensor sample.
+        if (decisionTaskHandle) xTaskNotifyGive(decisionTaskHandle);
 
         const TickType_t now = xTaskGetTickCount();
         if (firstLog || ((now-lastLog) * portTICK_PERIOD_MS >= REAL_LOG_PERIOD_MS)) {

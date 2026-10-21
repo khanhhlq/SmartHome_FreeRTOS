@@ -101,6 +101,7 @@ table{width:100%;border-collapse:collapse}th,td{padding:9px 10px;border-bottom:1
       <div class="stat"><div class="key">Thực thi ControlTask</div><div class="val" id="exec">—</div></div>
       <div class="stat"><div class="key">Tỷ lệ đạt deadline</div><div class="val" id="deadline">—</div></div>
     </div>
+    <p class="note" id="deadlineDetail">Số mẫu và mẫu trễ: đang lấy dữ liệu...</p>
     <p class="note">Các số đo chỉ có ý nghĩa trong phiên chạy mô phỏng. Deadline được tính theo thời gian từ mẫu dữ liệu mới đến khi ControlTask cập nhật đầu ra; không phải cam kết thời gian đáp ứng của phần cứng thực tế.</p>
   </section>
 </div>
@@ -145,6 +146,7 @@ async function refresh(){
    set('outLight',s.lightOn?'BẬT':'TẮT');set('fan',s.fan+' %');set('alarm',s.alarmOn?'BẬT':'TẮT');
    set('pir',s.pirLatency+' ms');set('resp',s.responseTime+' ms');
    set('exec',n(s.controlExec,3)+' ms');set('deadline',s.controlSamples?s.deadlineRate+' %':'Chưa có mẫu');
+   $('deadlineDetail').textContent = 'Đã tính: '+(s.controlSamples||0)+' mẫu; trễ '+(s.deadlineMisses||0)+' mẫu; độ trễ lớn nhất '+(s.maxResponseMs||0)+' ms. (Tích lũy từ lúc khởi động)';
    if(lastSavedRevision && s.appliedRevision>=lastSavedRevision && $('configStatus').textContent.includes('Chờ')){
      status('Cấu hình v'+lastSavedRevision+' đã được DecisionTask áp dụng.');
    }

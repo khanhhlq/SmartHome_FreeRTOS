@@ -41,8 +41,8 @@ constexpr bool RELAY_ACTIVE_HIGH = true;
 // =========================
 constexpr uint32_t SENSOR_REAL_PERIOD_MS = 2000;
 constexpr uint32_t REAL_LOG_PERIOD_MS = 5000;
-constexpr uint32_t DECISION_PERIOD_MS    = 100;
-constexpr uint32_t CONTROL_PERIOD_MS     = 200;
+constexpr uint32_t DECISION_PERIOD_MS    = 50;  // fallback for missed notifications
+constexpr uint32_t CONTROL_PERIOD_MS     = 50;  // retained for compatibility; ControlTask waits for notifications
 constexpr uint32_t DISPLAY_PERIOD_MS     = 500;
 
 constexpr uint32_t CONTROL_DEADLINE_MS   = 200;

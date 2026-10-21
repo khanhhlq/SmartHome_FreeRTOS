@@ -56,6 +56,7 @@ void PIRTask(void *parameter) {
             sensor.occupancy = currentOccupancy;
             sensor.sampleTick = now;
             xQueueOverwrite(sensorQueue, &sensor);
+            if (decisionTaskHandle) xTaskNotifyGive(decisionTaskHandle);
         }
     }
 }

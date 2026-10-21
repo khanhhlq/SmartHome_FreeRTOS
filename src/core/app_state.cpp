@@ -6,6 +6,8 @@ QueueHandle_t sensorQueue = nullptr;
 QueueHandle_t decisionQueue = nullptr;
 SemaphoreHandle_t pirSemaphore = nullptr;
 SemaphoreHandle_t configMutex = nullptr;
+TaskHandle_t decisionTaskHandle = nullptr;
+TaskHandle_t controlTaskHandle = nullptr;
 
 volatile bool currentOccupancy = false;
 volatile TickType_t pirIsrTick = 0;
@@ -22,6 +24,7 @@ volatile uint32_t controlExecMs = 0;
 volatile uint32_t controlExecUs = 0;
 volatile uint32_t controlCycles = 0;
 volatile uint32_t controlDeadlineMiss = 0;
+volatile uint32_t maxResponseTimeMs = 0;
 
 bool initRTOSObjects() {
     sensorQueue   = xQueueCreate(1, sizeof(SensorData));
@@ -53,5 +56,7 @@ bool updateControllerSettings(float coolingTempC, float darkLightPct,
     controllerSettings.revision++; // revision giup Web biet config da ap dung
     out = controllerSettings;
     xSemaphoreGive(configMutex);
+    // Notify DecisionTask only after releasing configMutex.
+    if (decisionTaskHandle) xTaskNotifyGive(decisionTaskHandle);
     return true;
 }

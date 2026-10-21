@@ -10,6 +10,10 @@ extern QueueHandle_t decisionQueue;
 extern SemaphoreHandle_t pirSemaphore;
 extern SemaphoreHandle_t configMutex;
 
+// Task handles for data-ready notifications (no periodic polling latency).
+extern TaskHandle_t decisionTaskHandle;
+extern TaskHandle_t controlTaskHandle;
+
 extern volatile bool currentOccupancy;
 extern volatile TickType_t pirIsrTick;
 
@@ -29,5 +33,6 @@ extern volatile uint32_t controlExecMs;
 extern volatile uint32_t controlExecUs;
 extern volatile uint32_t controlCycles;
 extern volatile uint32_t controlDeadlineMiss;
+extern volatile uint32_t maxResponseTimeMs;
 
 bool initRTOSObjects();

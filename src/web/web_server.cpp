@@ -117,6 +117,8 @@ static void handleState() {
     json += "\"controlExec\":" + String(controlExecUs / 1000.0f, 3) + ",";
     json += "\"deadlineRate\":" + String(deadlineRate, 1) + ",";
     json += "\"controlSamples\":" + String(controlCycles) + ",";
+    json += "\"deadlineMisses\":" + String(controlDeadlineMiss) + ",";
+    json += "\"maxResponseMs\":" + String(maxResponseTimeMs) + ",";
     json += "\"coolingTempC\":" + String(settings.coolingTempC, 1) + ",";
     json += "\"darkLightPct\":" + String(settings.darkLightPct, 1) + ",";
     json += "\"warningTempC\":" + String(TEMP_WARNING, 1) + ",";

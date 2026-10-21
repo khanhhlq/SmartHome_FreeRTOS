@@ -31,9 +31,9 @@ void setup() {
 
     bool created = true;
     created &= (xTaskCreate(PIRTask, "PIRTask", 2048, nullptr, 4, nullptr) == pdPASS);
-    created &= (xTaskCreate(ControlTask, "ControlTask", 4096, nullptr, 3, nullptr) == pdPASS);
+    created &= (xTaskCreate(ControlTask, "ControlTask", 4096, nullptr, 3, &controlTaskHandle) == pdPASS);
     created &= (xTaskCreate(SensorTask, "SensorTask", 4096, nullptr, 2, nullptr) == pdPASS);
-    created &= (xTaskCreate(DecisionTask, "DecisionTask", 3072, nullptr, 2, nullptr) == pdPASS);
+    created &= (xTaskCreate(DecisionTask, "DecisionTask", 3072, nullptr, 2, &decisionTaskHandle) == pdPASS);
     created &= (xTaskCreate(DisplayTask, "DisplayTask", 3072, nullptr, 1, nullptr) == pdPASS);
     created &= (xTaskCreate(WebTask, "WebTask", 6144, nullptr, 1, nullptr) == pdPASS);
     if (!created) {

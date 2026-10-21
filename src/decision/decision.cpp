@@ -30,14 +30,31 @@ void DecisionTask(void *parameter) {
     SensorData sensor = {};
     ControllerSettings settings = {};
     DecisionData decision = {};
+    bool haveDispatched = false;
+    TickType_t lastDispatchedTick = 0;
+    uint32_t lastDispatchedRevision = 0;
+    SystemMode lastDispatchedMode = COMFORT;
     while (true) {
-        if (xQueuePeek(sensorQueue, &sensor, pdMS_TO_TICKS(100)) == pdTRUE &&
-            readControllerSettings(settings)) {
-            decision.sensor = sensor;
-            decision.settings = settings;
-            decision.mode = evaluateMode(sensor, settings);
-            xQueueOverwrite(decisionQueue, &decision);
-        }
-        vTaskDelay(pdMS_TO_TICKS(DECISION_PERIOD_MS));
+        // Notification from SensorTask, PIRTask or config update.
+        // Fallback timeout also covers startup races when task handles were not ready.
+        ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(DECISION_PERIOD_MS));
+        if (xQueuePeek(sensorQueue, &sensor, 0) != pdTRUE ||
+            !readControllerSettings(settings)) continue;
+
+        decision.sensor = sensor;
+        decision.settings = settings;
+        decision.mode = evaluateMode(sensor, settings);
+        const bool changed = !haveDispatched ||
+            sensor.sampleTick != lastDispatchedTick ||
+            settings.revision != lastDispatchedRevision ||
+            decision.mode != lastDispatchedMode;
+        if (!changed) continue;
+
+        xQueueOverwrite(decisionQueue, &decision);
+        haveDispatched = true;
+        lastDispatchedTick = sensor.sampleTick;
+        lastDispatchedRevision = settings.revision;
+        lastDispatchedMode = decision.mode;
+        if (controlTaskHandle) xTaskNotifyGive(controlTaskHandle);
     }
 }
